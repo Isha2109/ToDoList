@@ -4,6 +4,7 @@ const bodyParser = require('body-parser')
 const { createDBConn } = require('./config/db')
 const {getId} = require('./general/general')
 const {addTask, getAllTasks, deleteTask, getTask, updateTask} = require('./controller/controller')
+const{registerUser, loginUser} = require('./controller/userController')
 
 
 app.use(bodyParser.json({}))
@@ -19,10 +20,12 @@ app.post('/addTask',async function(req,res){
         taskMessage: req.body.taskMessage,
         taskId: getId(),
         createDate: new Date(),
-        taskStatus: "pending"
+        taskStatus: "pending",
+        userId: req.body.userId
     }
-
+   // console.log(taskObj)
     ok = await addTask(taskObj)
+    //console.log(ok)
 
     if(ok) res.status(200).send({status:"ok", data:{message:"task added successfully"}})
     else res.status(404).send({status:"ok", data:{message:"task addition failed"}})
@@ -30,7 +33,8 @@ app.post('/addTask',async function(req,res){
 })
 
 app.get('/viewTask', async function(req, res){
-    taskList = await getAllTasks() 
+    userId = req.query.userId
+    taskList = await getAllTasks(userId) 
     res.status(200).send({status:"ok", data:{taskList: taskList }})
 })
 
@@ -43,17 +47,55 @@ app.put('/deleteTask', async function(req, res){
 })
 
 app.get('/viewTaskById', async function(req, res){
-        taskId = req.query.id        
+        taskId = req.query.taskId
+        userId = req.query.userId    
         taskById = await getTask(taskId)
         res.status(200).send({status:"ok", data:{taskById: taskById}})
+})
+
+app.post('/signup', async function(req, res){
+    let userObj= {
+        email: req.body.emailId,
+        password: req.body.password,
+        userId: getId(),
+        }
+    
+        ok = await registerUser(userObj)
+        console.log(ok)
+        if (ok) res.status(200).send({status:ok , data:{message:"user registered successfully", userId: userObj.userId, password: userObj.password}})
+        else res.status(404).send({status:ok, message:"user not registered"})
+})
+
+app.post('/login', async(req, res)=>
+{
+    let loginObj= {
+        userId: req.body.userId,
+        password: req.body.password,
+    }
+
+    ok = await loginUser(loginObj)
+
+    if (ok) res.status(200).send({status:"ok", data:{message: "user logged in successfully"}})
+    else res.status(404).send({status:"ok", data:{message:"user does not exist, please signup first"}})
+
+})
+
+app.post('/logoff', async(req, res)=>{
+    let logoffObj= {
+        logoff: new Date()
+    }
+    ok = await addLoggoffTime(logoffObj)
+    if(ok) res.status(200).send({status:ok, data:{message:"hello, logout successful", lastLogoff: logoffObj.logoff}})
+    else res.status(404).send({status:ok, data:{message:"user signout failed"}})
 })
 
 app.put('/updateTask', async function(req, res){
     let updObj= {
         taskTitle: req.body.taskTitle,
         taskMessage: req.body.taskMessage,
-        taskId: req.query.task_id,
-        taskStatus: req.body.taskStatus
+        taskId: req.query.taskId,
+        taskStatus: req.body.taskStatus,
+        userId: req.query.userId
     }
     ok = await updateTask(updObj)
     if (ok) res.status(200).send({status:"ok", data: {message: "Updation Successful"}})

@@ -1,10 +1,12 @@
 const taskSchema= require('../models/model')
 
  async function addTask(taskObj){
-    var task = new taskSchema(taskObj)
+     task = new taskSchema(taskObj)
+     console.log(task)
     try{
-        await task.save()
-        return true
+        createTask = await task.save()
+       // console.log(createTask)
+        return createTask
     }
     catch(e){
         console.log(e)
@@ -12,10 +14,10 @@ const taskSchema= require('../models/model')
     }
  }
 
- async function getAllTasks(){
+ async function getAllTasks(userId){
 
     try{
-        taskList = taskSchema.find({deletionStatus: false})
+        taskList = taskSchema.findOne({userId: userId, deletionStatus: false})
         return taskList
     }
     catch(e){
@@ -26,7 +28,7 @@ const taskSchema= require('../models/model')
 
  async function getTask(taskId){
     try{
-        task = taskSchema.findOne({taskId: taskId, deletionStatus: false})
+        task = taskSchema.findOne({userId: userId, taskId: taskId, deletionStatus: false})
         return task
     }
     catch(e){
@@ -37,7 +39,7 @@ const taskSchema= require('../models/model')
 
  async function deleteTask(taskId){
     try{
-        data = await taskSchema.updateOne({taskId: taskId},{$set: {deletionStatus: true}})
+        data = await taskSchema.updateOne({userId: userId, taskId: taskId},{$set: {deletionStatus: true}})
         if (data.deletedCount == 0) return "taskId not found"
         else return "task id successfully deleted"
     }
@@ -59,15 +61,15 @@ const taskSchema= require('../models/model')
 
         if (updObj.taskTitle) {
             titleUpdationFlag = true
-            dbResponse = await taskSchema.updateOne({taskId: updObj.taskId},{$set:{taskTitle: updObj.taskTitle}})
+            dbResponse = await taskSchema.updateOne({taskId: updObj.taskId, userId: updObj.userId},{$set:{taskTitle: updObj.taskTitle}})
             if (dbResponse.modifiedCount > 0) titleFlag = true
         } if (updObj.taskMessage) {
             messageUpdationFlag = true
-            dbResponse = await taskSchema.updateOne({taskId: updObj.taskId},{$set:{taskMessage: updObj.taskMessage}})
+            dbResponse = await taskSchema.updateOne({taskId: updObj.taskId, userId: updObj.userId},{$set:{taskMessage: updObj.taskMessage}})
             if (dbResponse.modifiedCount > 0 ) messageFlag = true 
         } if (updObj.taskStatus){
             statusUpdationFlag = true
-            dbResponse = await taskSchema.updateOne({taskId: updObj.taskId},{$set:{taskStatus: updObj.taskStatus}})
+            dbResponse = await taskSchema.updateOne({taskId: updObj.taskId, userId: updObj.userId},{$set:{taskStatus: updObj.taskStatus}})
             if (dbResponse.modifiedCount > 0 ) statusFlag = true 
         }
         return (titleFlag && titleUpdationFlag) || ( messageFlag && messageUpdationFlag) || ( statusFlag && statusUpdationFlag)

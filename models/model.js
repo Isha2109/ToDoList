@@ -1,9 +1,14 @@
 const mongoose=require('mongoose')
+const todoUserSchema = require('../models/user')
 
 var Schema = mongoose.Schema
 
 var taskSchema = new Schema({
     taskTitle:{
+        type: String,
+        required: true
+    },
+    userId:{
         type: String,
         required: true
     },
