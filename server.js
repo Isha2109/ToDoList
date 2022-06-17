@@ -39,8 +39,11 @@ app.get('/viewTask', async function(req, res){
 })
 
 app.put('/deleteTask', async function(req, res){
-        var taskId= req.query.task_id
-        let ok = await deleteTask(taskId)
+        var delObj ={
+           userId : req.query.userId,
+           taskId: req.query.taskId 
+        }
+        let ok = await deleteTask(delObj)
         console.log(ok)
         if (ok) res.status(200).send({status:"ok", data:{message:ok}})
         else res.status(404).send({status:"ok", data:{message:"task deletion failed"}})

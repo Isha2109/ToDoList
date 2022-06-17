@@ -15,9 +15,9 @@ const taskSchema= require('../models/model')
  }
 
  async function getAllTasks(userId){
-
+    console.log(userId)
     try{
-        taskList = taskSchema.findOne({userId: userId, deletionStatus: false})
+        taskList =await taskSchema.find({userId: userId, deletionStatus: false})
         return taskList
     }
     catch(e){
@@ -28,7 +28,7 @@ const taskSchema= require('../models/model')
 
  async function getTask(taskId){
     try{
-        task = taskSchema.findOne({userId: userId, taskId: taskId, deletionStatus: false})
+        task = await taskSchema.findOne({userId: userId, taskId: taskId, deletionStatus: false})
         return task
     }
     catch(e){
@@ -37,9 +37,9 @@ const taskSchema= require('../models/model')
     }
  }
 
- async function deleteTask(taskId){
+ async function deleteTask(delObj){
     try{
-        data = await taskSchema.updateOne({userId: userId, taskId: taskId},{$set: {deletionStatus: true}})
+        data = await taskSchema.updateOne({userId: delObj.userId, taskId: delObj.taskId},{$set: {deletionStatus: true}})
         if (data.deletedCount == 0) return "taskId not found"
         else return "task id successfully deleted"
     }
