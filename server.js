@@ -35,9 +35,7 @@ app.get('/viewTask', async function(req, res){
 })
 
 app.put('/deleteTask', async function(req, res){
-
-    
-        var taskId= req.body.taskId
+        var taskId= req.query.task_id
         let ok = await deleteTask(taskId)
         console.log(ok)
         if (ok) res.status(200).send({status:"ok", data:{message:ok}})
@@ -54,7 +52,7 @@ app.put('/updateTask', async function(req, res){
     let updObj= {
         taskTitle: req.body.taskTitle,
         taskMessage: req.body.taskMessage,
-        taskId: req.body.taskId,
+        taskId: req.query.task_id,
         taskStatus: req.body.taskStatus
     }
     ok = await updateTask(updObj)
