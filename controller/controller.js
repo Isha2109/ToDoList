@@ -17,7 +17,7 @@ const taskSchema= require('../models/model')
  async function getAllTasks(userId){
     console.log(userId)
     try{
-        taskList =await taskSchema.find({userId: userId, deletionStatus: false})
+        taskList = await taskSchema.find({userId: userId, deletionStatus: false})
         return taskList
     }
     catch(e){

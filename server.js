@@ -3,57 +3,31 @@ const app = express();
 const bodyParser = require('body-parser')
 const { createDBConn } = require('./config/db')
 const {getId} = require('./general/general')
-const {addTask, getAllTasks, deleteTask, getTask, updateTask} = require('./controller/controller')
 const{registerUser, loginUser} = require('./controller/userController')
+const taskRouter = require('./routes/taskRoutes')
+const jwt = require('jsonwebtoken')
+require(`dotenv`).config()
 
+createDBConn();
 
 app.use(bodyParser.json({}))
-createDBConn();
+
+app.use('/tasks',async function(req,res,next){
+    authToken = req.headers.authtoken
+    try{
+        let userId = await jwt.verify(authToken, process.env.ACCESS_TOKEN_SECRET)
+        req.userId = userId
+        next()
+    }catch(e){
+        console.log(e)
+        res.status(403).send({status:"ok", data:{message:"Unauthorized"}})
+    }
+})
+
+app.use('/tasks',taskRouter)
 
 app.get('/', function(req,res){
     res.status(200).send({status: "ok", message:"wrong path"})
-})
-
-app.post('/addTask',async function(req,res){
-    let taskObj={
-        taskTitle: req.body.taskTitle,
-        taskMessage: req.body.taskMessage,
-        taskId: getId(),
-        createDate: new Date(),
-        taskStatus: "pending",
-        userId: req.body.userId
-    }
-   // console.log(taskObj)
-    ok = await addTask(taskObj)
-    //console.log(ok)
-
-    if(ok) res.status(200).send({status:"ok", data:{message:"task added successfully"}})
-    else res.status(404).send({status:"ok", data:{message:"task addition failed"}})
-
-})
-
-app.get('/viewTask', async function(req, res){
-    userId = req.query.userId
-    taskList = await getAllTasks(userId) 
-    res.status(200).send({status:"ok", data:{taskList: taskList }})
-})
-
-app.put('/deleteTask', async function(req, res){
-        var delObj ={
-           userId : req.query.userId,
-           taskId: req.query.taskId 
-        }
-        let ok = await deleteTask(delObj)
-        console.log(ok)
-        if (ok) res.status(200).send({status:"ok", data:{message:ok}})
-        else res.status(404).send({status:"ok", data:{message:"task deletion failed"}})
-})
-
-app.get('/viewTaskById', async function(req, res){
-        taskId = req.query.taskId
-        userId = req.query.userId    
-        taskById = await getTask(taskId)
-        res.status(200).send({status:"ok", data:{taskById: taskById}})
 })
 
 app.post('/signup', async function(req, res){
@@ -76,34 +50,18 @@ app.post('/login', async(req, res)=>
         password: req.body.password,
     }
 
+    const user = loginObj.userId
+
+    const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET)
+
     ok = await loginUser(loginObj)
-
-    if (ok) res.status(200).send({status:"ok", data:{message: "user logged in successfully"}})
-    else res.status(404).send({status:"ok", data:{message:"user does not exist, please signup first"}})
-
-})
-
-app.post('/logoff', async(req, res)=>{
-    let logoffObj= {
-        logoff: new Date()
+    if (ok){
+        res.status(200).send({status:"ok", data:{message: "user logged in successfully" ,token:accessToken}})
     }
-    ok = await addLoggoffTime(logoffObj)
-    if(ok) res.status(200).send({status:ok, data:{message:"hello, logout successful", lastLogoff: logoffObj.logoff}})
-    else res.status(404).send({status:ok, data:{message:"user signout failed"}})
-})
+    else res.status(404).send({status:"ok", data:{message:"invalid credentials"}})
 
-app.put('/updateTask', async function(req, res){
-    let updObj= {
-        taskTitle: req.body.taskTitle,
-        taskMessage: req.body.taskMessage,
-        taskId: req.query.taskId,
-        taskStatus: req.body.taskStatus,
-        userId: req.query.userId
-    }
-    ok = await updateTask(updObj)
-    if (ok) res.status(200).send({status:"ok", data: {message: "Updation Successful"}})
-    else res.status(404).send({status:"ok", data: {message: "Updation Unsuccessful"}})
 })
+ 
 
 
 app.listen(3000, ()=>{
