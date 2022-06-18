@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 
+const {getId} = require('../general/general')
 const {addTask, getAllTasks, deleteTask, getTask, updateTask} = require('../controller/controller')
 
 // Home page route.
@@ -24,7 +25,7 @@ router.post('/addTask',async function(req,res){
         taskId: getId(),
         createDate: new Date(),
         taskStatus: "pending",
-        userId: req.body.userId
+        userId: req.userId
     }
     ok = await addTask(taskObj)
 
@@ -52,7 +53,7 @@ router.put('/deleteTask', async function(req, res){
 router.get('/viewTaskById', async function(req, res){
         taskId = req.query.taskId
         userId = req.userId    
-        taskById = await getTask(task)
+        taskById = await getTask(userId, taskId) 
         res.status(200).send({status:"ok", data:{taskById: taskById}})
 })
 

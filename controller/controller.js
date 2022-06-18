@@ -26,7 +26,7 @@ const taskSchema= require('../models/model')
     }
  }
 
- async function getTask(taskId){
+ async function getTask(userId, taskId){
     try{
         task = await taskSchema.findOne({userId: userId, taskId: taskId, deletionStatus: false})
         return task
